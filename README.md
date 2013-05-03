@@ -1,0 +1,4 @@
+mansikkamaa
+===========
+
+Mansikkamaan kauhu (linnunpelätinprojekti)
