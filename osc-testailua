@@ -1,0 +1,61 @@
+/*
+  UDPSendReceive.pde:
+ */
+ 
+#include          // needed for Arduino versions later than 0018
+#include 
+#include          // UDP library from: bjoern@cs.stanford.edu 12/30/2008
+#include
+ 
+// Enter a MAC address and IP address for your controller below.
+// The IP address will be dependent on your local network:
+byte mac[]  = { 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF };
+byte ip[]   = { 192 , 168 , 1 , 1 } ;  //
+ 
+unsigned int localPort = 10000;      // local port to listen on
+ 
+// the next two variables are set when a packet is received
+byte remoteIp[4];        // holds received packet's originating IP
+unsigned int remotePort; // holds received packet's originating port
+ 
+// buffers for receiving and sending data
+char packetBuffer[UDP_TX_PACKET_MAX_SIZE]; //buffer to hold incoming packet,
+char  ReplyBuffer[] = "acknowledged";       // a string to send back
+LiquidCrystal lcd(8, 7, 6, 5, 4, 3, 2);
+ 
+void setup() {
+  // start the Ethernet and UDP:
+  Ethernet.begin(mac,ip);
+  Udp.begin(localPort);
+ 
+  lcd.begin(16,2);
+  lcd.clear();
+  lcd.setCursor(0, 0);
+ 
+  Serial.begin(9600);
+}
+ 
+void loop() {
+  // if there's data available, read a packet
+  int packetSize = Udp.available(); // note that this includes the UDP header
+  if(packetSize)
+  {
+    packetSize = packetSize - 8;      // subtract the 8 byte header
+    Serial.print("Received packet of size ");
+    Serial.println(packetSize);
+ 
+    // read the packet into packetBufffer and get the senders IP addr and port number
+    Udp.readPacket(packetBuffer,UDP_TX_PACKET_MAX_SIZE, remoteIp, remotePort);
+    char* c = packetBuffer;
+    if( strcmp(c, "/osc/button1") == 0 ){
+      lcd.setCursor(0,0);
+      lcd.print("button 1 pushed");
+    }
+    if ( strcmp(c, "/osc/button2") == 0 ){
+      lcd.setCursor(0,0);
+      lcd.print("button 2 pushed");
+    }
+    Udp.sendPacket( ReplyBuffer, remoteIp, remotePort);
+  }
+  delay(500);
+}
